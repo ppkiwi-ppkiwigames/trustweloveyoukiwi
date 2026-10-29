@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ppkiwi sdk</title>
+<style>
+  :root { --bg:#0f1115; --card:#181b22; --text:#e8eaf0; --muted:#8b92a5; --accent:#7ed957; --border:#2a2f3a; --err:#ff6b6b; --hover:#20242d; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f4f6f9; --card:#fff; --text:#1c1f26; --muted:#667085; --accent:#3a9d1f; --border:#dde1e8; --err:#d92d20; --hover:#eef1f5; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,sans-serif; padding:24px 16px; }
+  .wrap { max-width:720px; margin:0 auto; }
+  h1 { margin:0 0 4px; font-size:28px; } h1 span { color:var(--accent); }
+  h2 { margin:0 0 10px; font-size:16px; }
+  p.sub { margin:0 0 20px; color:var(--muted); }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:12px 0 4px; }
+  h2 + label { margin-top:0; }
+  input[type=text], input[type=password], select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; }
+  select[size] { padding:4px; }
+  select[size] option { padding:6px 8px; border-radius:6px; }
+  .drop { border:2px dashed var(--border); border-radius:10px; padding:24px; text-align:center; color:var(--muted); cursor:pointer; margin-top:4px; }
+  .drop.over { border-color:var(--accent); color:var(--accent); }
+  button { background:var(--accent); color:#0b0d10; border:0; border-radius:8px; padding:11px 18px; font-weight:600; font-size:14px; cursor:pointer; margin-top:14px; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--border); padding:6px 10px; margin:0; font-size:12px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:560px){ .grid { grid-template-columns:1fr; } }
+  .linkrow { margin-top:12px; }
+  .linkrow .nm { font-size:13px; font-weight:600; color:var(--accent); }
+  .linkrow .nt { font-size:12px; color:var(--muted); margin-left:6px; font-weight:400; }
+  .row { display:flex; gap:8px; align-items:center; margin-top:4px; }
+  .row input { flex:1; font-family:ui-monospace,Consolas,monospace; font-size:12px; }
+  #log, #browseLog { font-size:13px; color:var(--muted); white-space:pre-wrap; margin-top:12px; }
+  .err { color:var(--err) !important; }
+  .hint { font-size:12px; color:var(--muted); margin-top:8px; }
+  .warn { font-size:13px; color:var(--err); margin:8px 0; }
+  .hidden { display:none; }
+  .crumbs { font-size:13px; margin:12px 0 6px; color:var(--muted); }
+  .crumbs a { color:var(--accent); cursor:pointer; text-decoration:none; }
+  .files { border:1px solid var(--border); border-radius:8px; max-height:280px; overflow-y:auto; }
+  .item { padding:8px 12px; font-size:14px; cursor:pointer; display:flex; gap:8px; border-bottom:1px solid var(--border); }
+  .item:last-child { border-bottom:0; }
+  .item:hover { background:var(--hover); }
+  .item.sel { background:var(--hover); outline:1px solid var(--accent); outline-offset:-1px; }
+  .item .sz { margin-left:auto; color:var(--muted); font-size:12px; }
+  code { font-family:ui-monospace,Consolas,monospace; }
+  .check { display:flex; gap:8px; align-items:center; font-size:13px; color:var(--muted); margin-top:12px; cursor:pointer; }
+  .check input { margin:0; }
+  #createLog { font-size:13px; color:var(--muted); white-space:pre-wrap; margin-top:12px; }
+  /* pages + bottom nav */
+  body { padding-bottom:96px; }
+  .page.hidden { display:none !important; }
+  .page { position:relative; z-index:1; }
+  svg.ic { width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .nav { position:fixed; left:0; right:0; bottom:0; z-index:10; display:flex; justify-content:center; gap:8px; padding:8px 12px calc(8px + env(safe-area-inset-bottom, 0px)); background:var(--card); border-top:1px solid var(--border); }
+  .nav button { flex:1; max-width:140px; margin:0; padding:6px 12px; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:11px; font-weight:600; background:transparent; color:var(--muted); border-radius:10px; }
+  .nav button.active { color:var(--accent); background:var(--hover); }
+  /* home */
+  #particles { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  .home { min-height:calc(100vh - 150px); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; }
+  .home > *:not(canvas) { position:relative; z-index:1; }
+  .home h1 { font-size:clamp(40px, 10vw, 72px); margin:0; }
+  .home p { color:var(--muted); max-width:420px; margin:10px 0 24px; }
+  .homebtns { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+  .bigbtn { display:flex; align-items:center; gap:10px; margin:0; padding:14px 22px; font-size:15px; background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:12px; }
+  .bigbtn:hover { border-color:var(--accent); }
+  .bigbtn svg { stroke:var(--accent); }
+  /* games */
+  .gamecard { cursor:pointer; margin-bottom:0; }
+  .gamecard:hover { border-color:var(--accent); }
+  .gamecard h2 { margin-bottom:6px; }
+  #gameMenu { margin-bottom:16px; }
+  .arena { position:relative; height:280px; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:10px; background:var(--bg); }
+  .kiwi { position:absolute; margin:0; padding:0; font-size:34px; line-height:1; background:transparent; border-radius:0; }
+  .mem { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-top:10px; }
+  .mcard { margin:0; padding:0; height:64px; font-size:28px; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:10px; }
+  .mcard.up { background:var(--hover); }
+  .mcard.done { outline:1px solid var(--accent); }
+  .nav { gap:4px; }
+  .nav button { text-align:center; line-height:1.15; padding:6px 4px; font-size:10.5px; }
+  .gimg { width:22px; height:22px; vertical-align:-4px; margin-right:4px; user-select:none; -webkit-user-drag:none; }
+  .kiwi img { width:40px; height:40px; display:block; user-select:none; -webkit-user-drag:none; }
+  .mcard img { width:44px; height:44px; display:block; margin:0 auto; user-select:none; -webkit-user-drag:none; }
+  /* study */
+  #studyScreen { position:relative; width:100%; max-width:1100px; height:min(78vh, 760px); min-height:420px; margin:12px auto 0; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--bg); }
+  #studyScreen iframe { width:100%; height:100%; border:0; display:block; background:#fff; }
+  #studyScreen:fullscreen { max-width:none; height:100vh; border-radius:0; }
+  .toolbar { display:flex; gap:8px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+  #page-study { max-width:1160px; }
+  #page-games { max-width:900px; }
+  .addbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:0 0 12px; }
+  .addbar button { margin:0; white-space:nowrap; }
+  .gamecard { position:relative; }
+  .gamecard.custom h2 { padding-right:70px; }
+  .gamecard.custom .hint { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gamecard .del { position:absolute; top:12px; right:12px; margin:0; }
+  .badge { display:inline-block; font-size:11px; color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:1px 8px; margin-left:8px; vertical-align:middle; font-weight:400; }
+  .filelist { font-size:12px; color:var(--muted); margin-top:6px; white-space:pre-line; }
+  .player { position:relative; width:100%; height:min(70vh, 640px); min-height:360px; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:10px; background:#fff; }
+  .player:fullscreen { height:100vh; border-radius:0; }
+  .player iframe { width:100%; height:100%; border:0; display:block; }
+  #page-algebra { max-width:900px; }
+  .filecard { cursor:pointer; margin-bottom:0; }
+  .filecard:hover { border-color:var(--accent); }
+  .filecard h2 { display:flex; align-items:center; gap:8px; word-break:break-all; }
+  .filecard .gimg { width:28px; height:28px; flex:none; margin:0; }
+  .code { margin:0; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--bg); overflow:auto; max-height:65vh; font-size:12px; white-space:pre-wrap; word-break:break-word; font-family:ui-monospace,Consolas,monospace; }
+</style>
+</head>
+<body>
+<!-- HOME -->
+<div class="page home" id="page-home">
+  <canvas id="particles"></canvas>
+  <h1>ppkiwi <span>sdk</span></h1>
+  <p>Upload files to GitHub, browse your repos, and turn them into CDN links.</p>
+  <div class="homebtns">
+    <button class="bigbtn" data-go="links"><svg class="ic" viewBox="0 0 24 24" data-icon="link"></svg> Math Work</button>
+    <button class="bigbtn" data-go="games"><svg class="ic" viewBox="0 0 24 24" data-icon="game"></svg> English Homework</button>
+    <button class="bigbtn" data-go="study"><svg class="ic" viewBox="0 0 24 24" data-icon="book"></svg> Study</button>
+    <button class="bigbtn" data-go="algebra"><svg class="ic" viewBox="0 0 24 24" data-icon="algebra"></svg> Algebra</button>
+  </div>
+</div>
+
+<div class="wrap page hidden" id="page-links">
+  <h1>Math <span>Work</span></h1>
+  <p class="sub">Upload files to GitHub, browse your repos, and get CDN links.</p>
+
+  <!-- TOKEN -->
+  <div class="card">
+    <h2>1. GitHub token</h2>
+    <label>Token (needs <code>repo</code> or "Contents: write" + "Administration: write")</label>
+    <input type="password" id="token" placeholder="ghp_... or github_pat_..." autocomplete="off">
+    <div class="hint">Your token stays in this page and is only sent to api.github.com.</div>
+    <button id="loadRepos">Load my repos</button>
+  </div>
+
+  <!-- CREATE REPO -->
+  <div class="card">
+    <h2>Create a repo</h2>
+    <label>Repo name</label>
+    <input type="text" id="newRepoName" placeholder="my-new-repo">
+
+    <label>Description (optional)</label>
+    <input type="text" id="newRepoDesc" placeholder="What is this repo for?">
+
+    <label>Visibility</label>
+    <select id="newRepoVis">
+      <option value="public">Public (CDN links work)</option>
+      <option value="private">Private</option>
+    </select>
+
+    <label class="check"><input type="checkbox" id="newRepoReadme" checked> Add a README (creates the main branch right away)</label>
+
+    <button id="createRepoBtn">Create repo</button>
+    <div id="createLog"></div>
+  </div>
+
+  <!-- BROWSE -->
+  <div class="card">
+    <h2>2. Pick a repo and a file</h2>
+    <label>Filter repos</label>
+    <input type="text" id="repoFilter" placeholder="type to filter...">
+    <label>Repo</label>
+    <select id="repoSelect" size="6"></select>
+
+    <div class="grid">
+      <div>
+        <label>Branch</label>
+        <select id="branchSelect"></select>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <div class="hint" id="repoInfo" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <div class="crumbs" id="crumbs"></div>
+    <div class="files" id="files"><div class="item" style="cursor:default;color:var(--muted)">Load your repos to start</div></div>
+    <div id="browseLog"></div>
+  </div>
+
+  <!-- LINKS -->
+  <div class="card hidden" id="linksCard">
+    <h2>3. Links</h2>
+    <div class="hint" id="selFile" style="margin:0 0 4px"></div>
+    <div class="warn hidden" id="privWarn">This repo is private, so public CDNs can't serve its files. Make the repo public for these links to work.</div>
+    <div id="links"></div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="card">
+    <h2>Upload a new file</h2>
+    <label>Repo name (leave blank to use the file name)</label>
+    <input type="text" id="repoName" placeholder="my-cool-repo">
+
+    <label>File name in repo (leave blank to keep the original name)</label>
+    <input type="text" id="fileName" placeholder="index.svg">
+
+    <label>File</label>
+    <div class="drop" id="drop">Click or drop a file here<input type="file" id="file" class="hidden"></div>
+    <div class="hint" id="picked"></div>
+
+    <label class="check"><input type="checkbox" id="uploadPrivate"> Make the repo private if it gets created</label>
+
+    <button id="go">Upload to GitHub</button>
+    <div id="log"></div>
+  </div>
+
+  <!-- CONVERTER -->
+  <div class="card">
+    <h2>Convert any GitHub file link</h2>
+    <input type="text" id="convIn" placeholder="https://github.com/user/repo/blob/main/index.svg">
+    <div id="convOut"></div>
+    <div class="hint" id="convErr"></div>
+  </div>
+</div>
+
+<!-- GAMES -->
+<div class="wrap page hidden" id="page-games">
+  <h1>English <span>Homework</span></h1>
+  <p class="sub">Quick games while you wait.</p>
+  <div id="gameHome">
+  <div class="addbar"><div class="hint" style="margin:0">Add your own games. They are saved in this browser.</div><button id="addGameBtn">+ Add a game</button></div>
+  <div class="card hidden" id="gameForm">
+    <h2>Add a game</h2>
+    <label>Game name</label>
+    <input type="text" id="gName" placeholder="My game">
+    <label>How do you want to add it?</label>
+    <select id="gMode">
+      <option value="files">Files (html, svg, js, css)</option>
+      <option value="link">Link to embed</option>
+    </select>
+    <div id="gFilesBox">
+      <label>Files (pick one or more)</label>
+      <input type="file" id="gFiles" multiple accept=".html,.htm,.svg,.js,.css">
+      <div class="hint">Use an .html or .svg file on its own, or .js (and .css) files. If your .html points at your .js, .css or .svg files by name, they get included automatically. Only the first .html file is used.</div>
+      <div class="filelist" id="gFileList"></div>
+    </div>
+    <div id="gLinkBox" class="hidden">
+      <label>Link to embed</label>
+      <input type="text" id="gLink" placeholder="https://...">
+      <div class="hint">Some sites don't allow being embedded. If it stays blank, use "Open in new tab" on the game.</div>
+    </div>
+    <div class="toolbar" style="justify-content:flex-start"><button id="gSave">Save game</button><button class="ghost" id="gCancel" style="margin-top:14px">Cancel</button></div>
+    <div id="gLog" class="hint"></div>
+  </div>
+  <div id="gameMenu" class="grid">
+    <div class="card gamecard" data-game="catch"><h2><img class="gimg" data-art="kiwi" alt="" draggable="false"> Kiwi Catch</h2><div class="hint">Tap the kiwi as many times as you can in 20 seconds.</div></div>
+    <div class="card gamecard" data-game="memory"><h2><img class="gimg" data-art="back" alt="" draggable="false"> Memory Match</h2><div class="hint">Flip cards and find all the pairs.</div></div>
+    <div id="customGames" style="display:contents"></div>
+  </div>
+  </div>
+  <div id="gameArea" class="card hidden">
+    <button class="ghost" id="gameBack">← Back</button>
+    <div id="gameBody"></div>
+  </div>
+</div>
+
+<!-- STUDY -->
+<div class="wrap page hidden" id="page-study">
+  <h1><span>Study</span></h1>
+  <p class="sub">Open the study screen below.</p>
+  <div id="studyScreen">
+    <iframe id="studyFrame" title="Study" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-modals" allow="fullscreen" allowfullscreen></iframe>
+  </div>
+  <div class="toolbar">
+    <button class="ghost" id="studyReload">Reload</button>
+    <button class="ghost" id="studyFull">Fullscreen</button>
+    <button class="ghost" id="studyOpen">Open in new tab</button>
+  </div>
+</div>
+
+<!-- ALGEBRA -->
+<div class="wrap page hidden" id="page-algebra">
+  <h1><span>Algebra</span></h1>
+  <p class="sub">Share files with everyone. Uploads are anonymous and public.</p>
+
+  <div id="algSetup" class="card hidden">
+    <h2>Set up Algebra</h2>
+    <div class="hint" style="font-size:13px; line-height:1.6; margin:0">
+      Algebra keeps the shared files in a public GitHub repo. To turn it on:<br>
+      1. In Math Work, create a <b>public</b> repo (for example <code>ppkiwi-algebra</code>) with the README box ticked.<br>
+      2. On GitHub go to Settings, Developer settings, Fine-grained tokens. Make a token for <b>only that repo</b> with Contents set to Read and write, and give it an expiry date.<br>
+      3. In this file, find <code>const ALGEBRA</code> and fill in <code>owner</code>, <code>repo</code> and <code>token</code>. Save the file and reopen it.<br><br>
+      <b>Heads up:</b> the token sits inside this file, so anyone who opens the file can read it. A token limited to that one repo can only change files in that repo, but don't use your main token here.
+    </div>
+  </div>
+
+  <div id="algHome">
+    <div class="addbar">
+      <div class="hint" style="margin:0">Everyone using ppkiwi sdk sees these files.</div>
+      <div class="toolbar" style="margin:0; justify-content:flex-end"><button class="ghost" id="algRefresh">Refresh</button><button id="algAddBtn">+ Upload files</button></div>
+    </div>
+    <div class="card hidden" id="algForm">
+      <h2>Upload files</h2>
+      <div class="hint" style="margin:0 0 8px">Anything you upload is public to everyone who uses ppkiwi sdk, and it can't be deleted from here. This page doesn't record who uploaded a file. Don't upload anything private. Any file type is fine, up to 25 MB each.</div>
+      <div class="drop" id="algDrop">Click or drop files here</div>
+      <input type="file" id="algFiles" multiple class="hidden">
+      <div class="filelist" id="algPicked"></div>
+      <button id="algUploadBtn">Upload</button>
+      <div id="algLog" class="hint"></div>
+    </div>
+    <input type="text" id="algFilter" placeholder="Search files..." style="margin-bottom:12px">
+    <div id="algStatus" class="hint" style="margin:0 0 10px"></div>
+    <div id="algList" class="grid"></div>
+  </div>
+
+  <div id="algView" class="card hidden">
+    <button class="ghost" id="algBack">&larr; Back</button>
+    <div id="algViewBody"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav">
+  <button data-page="home" class="active"><svg class="ic" viewBox="0 0 24 24" data-icon="home"></svg>Home</button>
+  <button data-page="links"><svg class="ic" viewBox="0 0 24 24" data-icon="link"></svg>Math Work</button>
+  <button data-page="games"><svg class="ic" viewBox="0 0 24 24" data-icon="game"></svg>English Homework</button>
+  <button data-page="study"><svg class="ic" viewBox="0 0 24 24" data-icon="book"></svg>Study</button>
+  <button data-page="algebra"><svg class="ic" viewBox="0 0 24 24" data-icon="algebra"></svg>Algebra</button>
+</nav>
+
+<script>
+/* ============================================================
+   ppkiwi sdk
+   Use it in code too:
+     const out = await PPKiwi.upload({ token, repoName: "my-repo", fileName: "index.svg", file });
+     console.log(out.links);               // every CDN link
+     PPKiwi.allLinks({owner, repo, branch, path});
+   ============================================================ */
+const PPKiwi = (() => {
+  const API = "https://api.github.com";
+
+  const clean = (s) => String(s).trim().replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
+  const stripExt = (n) => n.replace(/\.[^.]+$/, "");
+  const encPath = (p) => String(p).split("/").map(encodeURIComponent).join("/");
+
+  async function gh(token, path, opts = {}) {
+    const res = await fetch(API + path, {
+      ...opts,
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json",
+        ...(opts.headers || {})
+      }
+    });
+    let data = null;
+    try { data = await res.json(); } catch (_) {}
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result).split(",")[1]);
+      r.onerror = () => reject(new Error("Could not read file"));
+      r.readAsDataURL(file);
+    });
+  }
+
+  /* ---------- CDN link builder ---------- */
+  function allLinks({ owner, repo, branch, path, sha }) {
+    const p = encPath(path);
+    const gh_ = `${owner}/${repo}`;
+    const links = [
+      { name: "jsDelivr", note: "main CDN (branch links can cache up to ~12h)", url: `https://cdn.jsdelivr.net/gh/${gh_}@${branch}/${p}` },
+      { name: "jsDelivr (Fastly)", note: "mirror", url: `https://fastly.jsdelivr.net/gh/${gh_}@${branch}/${p}` },
+      { name: "jsDelivr (Gcore)", note: "mirror", url: `https://gcore.jsdelivr.net/gh/${gh_}@${branch}/${p}` },
+      { name: "jsDelivr (Cloudflare)", note: "mirror", url: `https://testingcf.jsdelivr.net/gh/${gh_}@${branch}/${p}` }
+    ];
+    if (/\.(js|css)$/i.test(path) && !/\.min\.(js|css)$/i.test(path)) {
+      links.push({ name: "jsDelivr (minified)", note: "auto-minified by jsDelivr", url: `https://cdn.jsdelivr.net/gh/${gh_}@${branch}/${p.replace(/\.(js|css)$/i, ".min.$1")}` });
+    }
+    if (sha) links.push({ name: "jsDelivr (pinned commit)", note: "never changes, permanent cache", url: `https://cdn.jsdelivr.net/gh/${gh_}@${sha}/${p}` });
+    links.push(
+      { name: "Statically", url: `https://cdn.statically.io/gh/${gh_}/${branch}/${p}` },
+      { name: "GitHack (dev)", note: "always latest, not for production", url: `https://raw.githack.com/${gh_}/${branch}/${p}` },
+      { name: "GitHack (CDN)", note: sha ? "pinned to commit" : "cached by branch", url: `https://rawcdn.githack.com/${gh_}/${sha || branch}/${p}` },
+      { name: "GitHub raw", note: "not a CDN, rate limited", url: `https://raw.githubusercontent.com/${gh_}/${branch}/${p}` },
+      { name: "jsDelivr (@latest)", note: "latest release, or the default branch", url: `https://cdn.jsdelivr.net/gh/${gh_}@latest/${p}` },
+      { name: "jsDelivr (origin Fastly)", note: "mirror", url: `https://originfastly.jsdelivr.net/gh/${gh_}@${branch}/${p}` },
+      { name: "jsDelivr (Bunny)", note: "mirror", url: `https://jsdelivr.b-cdn.net/gh/${gh_}@${branch}/${p}` },
+      { name: "jsDelivr (jsDMirror)", note: "third-party mirror", url: `https://cdn.jsdmirror.com/gh/${gh_}@${branch}/${p}` },
+      { name: "GitHubRaw", note: "raw proxy with correct file types", url: `https://githubraw.com/${gh_}/${branch}/${p}` },
+      { name: "GitHub (raw redirect)", note: "github.com raw link", url: `https://github.com/${gh_}/raw/${branch}/${p}` },
+      { name: "GitHub media", note: "mainly for Git LFS files", url: `https://media.githubusercontent.com/media/${gh_}/${branch}/${p}` },
+      { name: "GitHub Pages", note: "only works if Pages is turned on for the repo", url: `https://${owner}.github.io/${repo}/${p}` }
+    );
+    return links;
+  }
+
+  // Accepts github.com/.../blob/..., github.com/.../raw/..., or raw.githubusercontent.com/...
+  function convertLink(url) {
+    url = String(url).trim();
+    let m = url.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/(?:blob|raw)\/([^\/]+)\/(.+?)(?:\?.*)?$/);
+    if (!m) m = url.match(/^https?:\/\/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+?)(?:\?.*)?$/);
+    if (!m) return null;
+    const [, owner, repo, branch, rawPath] = m;
+    const path = decodeURIComponent(rawPath);
+    const links = allLinks({ owner, repo, branch, path });
+    return {
+      owner, repo, branch, path, links,
+      jsdelivr: links[0].url,
+      statically: links.find(l => l.name === "Statically").url
+    };
+  }
+
+  /* ---------- browsing ---------- */
+  async function listRepos(token) {
+    let all = [];
+    for (let page = 1; page <= 10; page++) {
+      const r = await gh(token, `/user/repos?per_page=100&page=${page}&sort=updated&affiliation=owner,collaborator,organization_member`);
+      if (!r.ok) throw new Error("Could not load repos (" + r.status + "): " + (r.data?.message || ""));
+      all = all.concat(r.data);
+      if (r.data.length < 100) break;
+    }
+    return all;
+  }
+
+  async function listBranches(token, owner, repo) {
+    const r = await gh(token, `/repos/${owner}/${repo}/branches?per_page=100`);
+    if (!r.ok) throw new Error("Could not load branches: " + (r.data?.message || r.status));
+    return r.data.map(b => b.name);
+  }
+
+  async function listDir(token, owner, repo, path, branch) {
+    const r = await gh(token, `/repos/${owner}/${repo}/contents${path ? "/" + encPath(path) : ""}?ref=${encPath(branch)}`);
+    if (r.status === 404 && !path) return []; // empty repo
+    if (!r.ok) throw new Error("Could not open folder: " + (r.data?.message || r.status));
+    const items = Array.isArray(r.data) ? r.data : [r.data];
+    return items.sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type === "dir" ? -1 : 1));
+  }
+
+  async function commitSha(token, owner, repo, branch) {
+    const r = await gh(token, `/repos/${owner}/${repo}/commits/${encPath(branch)}`);
+    return r.ok ? r.data.sha : null;
+  }
+
+  /* ---------- create repo ---------- */
+  async function createRepo({ token, name, description = "", isPrivate = false, readme = true }) {
+    if (!token) throw new Error("Missing GitHub token");
+    const n = clean(name || "");
+    if (!n) throw new Error("Enter a repo name");
+    const r = await gh(token, "/user/repos", {
+      method: "POST",
+      body: JSON.stringify({ name: n, description, private: isPrivate, auto_init: readme })
+    });
+    if (!r.ok) {
+      if (r.status === 422) throw new Error(`Couldn't create "${n}": it already exists or the name is invalid`);
+      throw new Error("Repo creation failed (" + r.status + "): " + (r.data?.message || ""));
+    }
+    return r.data; // full_name, private, default_branch, html_url ...
+  }
+
+  /* ---------- upload ---------- */
+  async function upload({ token, repoName, fileName, file, isPrivate = false, onStatus = () => {} }) {
+    if (!token) throw new Error("Missing GitHub token");
+    if (!file) throw new Error("No file selected");
+
+    const finalFile = clean(fileName || file.name);
+    const finalRepo = clean(repoName || stripExt(file.name));
+    if (!finalFile || !finalRepo) throw new Error("Repo/file name is empty after cleaning");
+
+    onStatus("Checking token...");
+    const me = await gh(token, "/user");
+    if (!me.ok) throw new Error("Token rejected (" + me.status + "): " + (me.data?.message || ""));
+    const owner = me.data.login;
+
+    onStatus(`Creating repo ${owner}/${finalRepo}...`);
+    let repo = await gh(token, "/user/repos", {
+      method: "POST",
+      body: JSON.stringify({ name: finalRepo, private: isPrivate, description: "Uploaded with ppkiwi sdk" })
+    });
+    let existed = false;
+    if (!repo.ok) {
+      if (repo.status === 422) {
+        onStatus("Repo already exists, adding file to it...");
+        repo = await gh(token, `/repos/${owner}/${finalRepo}`);
+        existed = true;
+        if (!repo.ok) throw new Error("Could not open existing repo: " + (repo.data?.message || repo.status));
+      } else {
+        throw new Error("Repo creation failed: " + (repo.data?.message || repo.status));
+      }
+    }
+    const branch = repo.data.default_branch || "main";
+
+    onStatus("Reading file...");
+    const content = await toBase64(file);
+
+    let sha;
+    if (existed) {
+      const cur = await gh(token, `/repos/${owner}/${finalRepo}/contents/${encodeURIComponent(finalFile)}?ref=${branch}`);
+      if (cur.ok) sha = cur.data.sha;
+    }
+
+    onStatus(`Uploading ${finalFile}...`);
+    let put;
+    for (let i = 0; i < 3; i++) {
+      put = await gh(token, `/repos/${owner}/${finalRepo}/contents/${encodeURIComponent(finalFile)}`, {
+        method: "PUT",
+        body: JSON.stringify({ message: "Add " + finalFile + " via ppkiwi sdk", content, branch, ...(sha ? { sha } : {}) })
+      });
+      if (put.ok || (put.status !== 404 && put.status !== 409)) break;
+      await new Promise(r => setTimeout(r, 1200));
+    }
+    if (!put.ok) throw new Error("Upload failed: " + (put.data?.message || put.status));
+
+    const commit = put.data?.commit?.sha || null;
+    const links = allLinks({ owner, repo: finalRepo, branch, path: finalFile, sha: commit });
+    return {
+      owner, repo: finalRepo, file: finalFile, branch, commit, links,
+      github: `https://github.com/${owner}/${finalRepo}/blob/${branch}/${finalFile}`,
+      jsdelivr: links[0].url,
+      statically: links.find(l => l.name === "Statically").url,
+      private: repo.data.private === true
+    };
+  }
+
+  return { upload, createRepo, convertLink, allLinks, listRepos, listBranches, listDir, commitSha, clean };
+})();
+window.PPKiwi = PPKiwi;
+
+/* ---------------- UI ---------------- */
+const $ = (id) => document.getElementById(id);
+const tok = () => $("token").value.trim();
+
+let picked = null;           // file chosen for upload
+let repos = [];              // loaded repos
+const cur = { owner: "", repo: "", isPrivate: false, branch: "", path: "", selected: null };
+
+function setLog(el, msg, isErr) { el.textContent = msg; el.classList.toggle("err", !!isErr); }
+
+/* links renderer */
+let linkCounter = 0;
+function renderLinks(container, links) {
+  container.innerHTML = "";
+  links.forEach((l) => {
+    const id = "lk-" + (linkCounter++);
+    const wrap = document.createElement("div");
+    wrap.className = "linkrow";
+    const nm = document.createElement("div");
+    const b = document.createElement("span"); b.className = "nm"; b.textContent = l.name;
+    nm.appendChild(b);
+    if (l.note) { const n = document.createElement("span"); n.className = "nt"; n.textContent = l.note; nm.appendChild(n); }
+    const row = document.createElement("div"); row.className = "row";
+    const inp = document.createElement("input"); inp.type = "text"; inp.readOnly = true; inp.id = id; inp.value = l.url;
+    const cp = document.createElement("button"); cp.className = "ghost"; cp.textContent = "Copy"; cp.dataset.copy = id;
+    const op = document.createElement("button"); op.className = "ghost"; op.textContent = "Open";
+    op.addEventListener("click", () => window.open(l.url, "_blank", "noopener"));
+    row.append(inp, cp, op);
+    wrap.append(nm, row);
+    container.appendChild(wrap);
+  });
+}
+
+/* ----- repo list ----- */
+function drawRepoList() {
+  const q = $("repoFilter").value.trim().toLowerCase();
+  const sel = $("repoSelect");
+  const keep = cur.owner && cur.repo ? cur.owner + "/" + cur.repo : "";
+  sel.innerHTML = "";
+  repos
+    .filter(r => r.full_name.toLowerCase().includes(q))
+    .forEach(r => {
+      const o = document.createElement("option");
+      o.value = r.full_name;
+      o.textContent = r.full_name + (r.private ? "  (private)" : "");
+      if (r.full_name === keep) o.selected = true;
+      sel.appendChild(o);
+    });
+}
+$("repoFilter").addEventListener("input", drawRepoList);
+
+$("loadRepos").addEventListener("click", async () => {
+  if (!tok()) { setLog($("browseLog"), "Enter your token first.", true); return; }
+  $("loadRepos").disabled = true;
+  setLog($("browseLog"), "Loading repos...");
+  try {
+    repos = await PPKiwi.listRepos(tok());
+    drawRepoList();
+    setLog($("browseLog"), `${repos.length} repos loaded. Pick one above.`);
+  } catch (e) { setLog($("browseLog"), e.message, true); }
+  $("loadRepos").disabled = false;
+});
+
+$("repoSelect").addEventListener("change", () => {
+  if ($("repoSelect").value) openRepo($("repoSelect").value);
+});
+
+/* ----- open repo / branch / folder ----- */
+async function openRepo(fullName, opts = {}) {
+  const info = repos.find(r => r.full_name === fullName);
+  if (!info) return;
+  const [owner, repo] = fullName.split("/");
+  Object.assign(cur, { owner, repo, isPrivate: !!info.private, path: "", selected: null });
+  $("linksCard").classList.add("hidden");
+  $("repoInfo").textContent = (info.private ? "Private" : "Public") + " repo";
+  setLog($("browseLog"), "Loading branches...");
+  try {
+    const branches = await PPKiwi.listBranches(tok(), owner, repo);
+    const bs = $("branchSelect");
+    bs.innerHTML = "";
+    const list = branches.length ? branches : [info.default_branch || "main"];
+    list.forEach(b => { const o = document.createElement("option"); o.value = b; o.textContent = b; bs.appendChild(o); });
+    cur.branch = opts.branch && list.includes(opts.branch) ? opts.branch : (list.includes(info.default_branch) ? info.default_branch : list[0]);
+    bs.value = cur.branch;
+    await loadDir("");
+    if (opts.selectPath) await selectFile(opts.selectPath);
+  } catch (e) { setLog($("browseLog"), e.message, true); }
+}
+
+$("branchSelect").addEventListener("change", async () => {
+  cur.branch = $("branchSelect").value;
+  cur.selected = null;
+  $("linksCard").classList.add("hidden");
+  try { await loadDir(""); } catch (e) { setLog($("browseLog"), e.message, true); }
+});
+
+async function loadDir(path) {
+  setLog($("browseLog"), "Loading files...");
+  const items = await PPKiwi.listDir(tok(), cur.owner, cur.repo, path, cur.branch);
+  cur.path = path;
+  drawCrumbs();
+  const box = $("files");
+  box.innerHTML = "";
+  if (!items.length) {
+    const e = document.createElement("div"); e.className = "item"; e.style.cursor = "default"; e.style.color = "var(--muted)";
+    e.textContent = "Empty folder"; box.appendChild(e);
+  }
+  items.forEach(it => {
+    const row = document.createElement("div");
+    row.className = "item" + (cur.selected === it.path ? " sel" : "");
+    const icon = it.type === "dir" ? "📁" : "📄";
+    row.innerHTML = `<span>${icon}</span><span></span><span class="sz"></span>`;
+    row.children[1].textContent = it.name;
+    if (it.type === "file") row.children[2].textContent = (it.size / 1024).toFixed(1) + " KB";
+    row.addEventListener("click", async () => {
+      try {
+        if (it.type === "dir") await loadDir(it.path);
+        else if (it.type === "file") { await selectFile(it.path); box.querySelectorAll(".item").forEach(x => x.classList.remove("sel")); row.classList.add("sel"); }
+      } catch (e) { setLog($("browseLog"), e.message, true); }
+    });
+    box.appendChild(row);
+  });
+  setLog($("browseLog"), "");
+}
+
+function drawCrumbs() {
+  const c = $("crumbs");
+  c.innerHTML = "";
+  const root = document.createElement("a"); root.textContent = cur.repo; root.addEventListener("click", () => loadDir("").catch(e => setLog($("browseLog"), e.message, true)));
+  c.appendChild(root);
+  const parts = cur.path ? cur.path.split("/") : [];
+  parts.forEach((seg, i) => {
+    c.appendChild(document.createTextNode(" / "));
+    const a = document.createElement("a"); a.textContent = seg;
+    const target = parts.slice(0, i + 1).join("/");
+    a.addEventListener("click", () => loadDir(target).catch(e => setLog($("browseLog"), e.message, true)));
+    c.appendChild(a);
+  });
+}
+
+async function selectFile(path) {
+  cur.selected = path;
+  setLog($("browseLog"), "Getting commit...");
+  const sha = await PPKiwi.commitSha(tok(), cur.owner, cur.repo, cur.branch);
+  setLog($("browseLog"), "");
+  const links = PPKiwi.allLinks({ owner: cur.owner, repo: cur.repo, branch: cur.branch, path, sha });
+  $("selFile").textContent = `${cur.owner}/${cur.repo}@${cur.branch}  →  ${path}`;
+  $("privWarn").classList.toggle("hidden", !cur.isPrivate);
+  renderLinks($("links"), links);
+  $("linksCard").classList.remove("hidden");
+}
+
+/* ----- create repo ----- */
+$("createRepoBtn").addEventListener("click", async () => {
+  $("createRepoBtn").disabled = true;
+  setLog($("createLog"), "Creating repo...");
+  try {
+    const data = await PPKiwi.createRepo({
+      token: tok(),
+      name: $("newRepoName").value,
+      description: $("newRepoDesc").value.trim(),
+      isPrivate: $("newRepoVis").value === "private",
+      readme: $("newRepoReadme").checked
+    });
+    setLog($("createLog"), `Created ${data.full_name} (${data.private ? "private" : "public"}).`);
+    $("newRepoName").value = "";
+    $("newRepoDesc").value = "";
+    // add to the list and open it in the browser
+    if (!repos.find(r => r.full_name === data.full_name)) repos.unshift(data);
+    $("repoFilter").value = "";
+    drawRepoList();
+    await openRepo(data.full_name, { branch: data.default_branch });
+  } catch (e) {
+    setLog($("createLog"), e.message, true);
+  } finally {
+    $("createRepoBtn").disabled = false;
+  }
+});
+
+/* ----- upload ----- */
+function setFile(f) {
+  picked = f;
+  $("picked").textContent = f ? `Selected: ${f.name} (${(f.size/1024).toFixed(1)} KB)` : "";
+}
+$("drop").addEventListener("click", () => $("file").click());
+$("file").addEventListener("change", (e) => setFile(e.target.files[0]));
+["dragover","dragenter"].forEach(ev => $("drop").addEventListener(ev, (e) => { e.preventDefault(); $("drop").classList.add("over"); }));
+["dragleave","drop"].forEach(ev => $("drop").addEventListener(ev, (e) => { e.preventDefault(); $("drop").classList.remove("over"); }));
+$("drop").addEventListener("drop", (e) => { if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); });
+
+$("go").addEventListener("click", async () => {
+  $("go").disabled = true;
+  try {
+    const out = await PPKiwi.upload({
+      token: tok(),
+      repoName: $("repoName").value,
+      fileName: $("fileName").value,
+      file: picked,
+      isPrivate: $("uploadPrivate").checked,
+      onStatus: (m) => setLog($("log"), m)
+    });
+    setLog($("log"), `Done! ${out.owner}/${out.repo} (${out.branch}). Links are in section 3.`);
+    // add to list if it's new, then open it and select the file
+    const full = out.owner + "/" + out.repo;
+    if (!repos.find(r => r.full_name === full)) repos.unshift({ full_name: full, private: out.private, default_branch: out.branch });
+    $("repoFilter").value = "";
+    drawRepoList();
+    await openRepo(full, { branch: out.branch, selectPath: out.file });
+  } catch (e) {
+    setLog($("log"), e.message, true);
+  } finally {
+    $("go").disabled = false;
+  }
+});
+
+/* ----- converter ----- */
+$("convIn").addEventListener("input", () => {
+  const r = PPKiwi.convertLink($("convIn").value);
+  if (r) { renderLinks($("convOut"), r.links); $("convErr").textContent = ""; }
+  else {
+    $("convOut").innerHTML = "";
+    $("convErr").textContent = $("convIn").value.trim() ? "Paste a github.com .../blob/... or raw.githubusercontent.com link." : "";
+  }
+});
+
+/* ----- copy buttons ----- */
+document.addEventListener("click", (e) => {
+  const id = e.target.dataset && e.target.dataset.copy;
+  if (!id) return;
+  const el = $(id);
+  el.select();
+  (navigator.clipboard ? navigator.clipboard.writeText(el.value) : Promise.reject()).catch(() => document.execCommand("copy"));
+  const old = e.target.textContent; e.target.textContent = "Copied";
+  setTimeout(() => e.target.textContent = old, 1000);
+});
+/* ================= icons ================= */
+const ICONS = {
+  home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  game: '<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>'
+};
+ICONS.book = '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>';
+ICONS.algebra = '<path d="M18 4H6l7 8-7 8h12"/>';
+document.querySelectorAll("[data-icon]").forEach(el => { el.innerHTML = ICONS[el.dataset.icon] || ""; });
+
+/* ================= game art (inline SVG images) ================= */
+const ART = (() => {
+  const wrap = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${inner}</svg>`;
+  const seeds = (cx, cy, rx, ry, n) => {
+    let s = "";
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2, x = (cx + Math.cos(a) * rx).toFixed(1), y = (cy + Math.sin(a) * ry).toFixed(1);
+      s += `<ellipse cx="${x}" cy="${y}" rx="1.4" ry="2.4" fill="#1c1f26" transform="rotate(${(a * 180 / Math.PI + 90).toFixed(0)} ${x} ${y})"/>`;
+    }
+    return s;
+  };
+  const svgs = {
+    kiwi: wrap(`<ellipse cx="32" cy="32" rx="28" ry="26" fill="#8b5a2b"/><ellipse cx="32" cy="32" rx="24.5" ry="22.5" fill="#7ed957"/><ellipse cx="32" cy="32" rx="10" ry="9" fill="#f4f9d8"/>${seeds(32, 32, 15, 13.5, 14)}`),
+    apple: wrap(`<path d="M32 18c-6-6-20-3-20 14 0 12 8 24 16 24 2 0 3-1 4-1s2 1 4 1c8 0 16-12 16-24 0-17-14-20-20-14z" fill="#e53935"/><path d="M32 18c0-5 2-9 5-11" stroke="#6d4c41" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M36 12c4-5 10-5 13-3-2 5-8 7-13 3z" fill="#4caf50"/><ellipse cx="20" cy="30" rx="3" ry="6" fill="#fff" opacity=".25"/>`),
+    grapes: wrap(`<path d="M32 18v-8" stroke="#6d4c41" stroke-width="3" stroke-linecap="round"/><path d="M33 12c4-5 11-5 14-2-2 5-9 7-14 2z" fill="#4caf50"/><g fill="#7e57c2"><circle cx="20" cy="26" r="8"/><circle cx="32" cy="26" r="8"/><circle cx="44" cy="26" r="8"/><circle cx="26" cy="38" r="8"/><circle cx="38" cy="38" r="8"/><circle cx="32" cy="50" r="8"/></g><g fill="#fff" opacity=".3"><circle cx="18" cy="23" r="2"/><circle cx="30" cy="23" r="2"/><circle cx="42" cy="23" r="2"/><circle cx="24" cy="35" r="2"/><circle cx="36" cy="35" r="2"/><circle cx="30" cy="47" r="2"/></g>`),
+    cherry: wrap(`<path d="M22 36C24 22 30 14 34 8M42 38C40 24 38 16 34 8" stroke="#6d8c3a" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M34 8c4-4 11-3 14 0-3 4-10 5-14 0z" fill="#4caf50"/><circle cx="22" cy="47" r="11" fill="#c62828"/><circle cx="42" cy="49" r="11" fill="#d32f2f"/><circle cx="18" cy="43" r="3" fill="#fff" opacity=".3"/><circle cx="38" cy="45" r="3" fill="#fff" opacity=".3"/>`),
+    lemon: wrap(`<g transform="rotate(-20 32 32)"><circle cx="5" cy="32" r="4" fill="#fdd835"/><circle cx="59" cy="32" r="4" fill="#fdd835"/><ellipse cx="32" cy="32" rx="26" ry="18" fill="#fdd835"/><ellipse cx="26" cy="25" rx="12" ry="4" fill="#fff" opacity=".35"/></g>`),
+    melon: wrap(`<g transform="translate(0,8)"><path d="M4 20a28 28 0 0 0 56 0z" fill="#2e7d32"/><path d="M8 20a24 24 0 0 0 48 0z" fill="#f1f8e9"/><path d="M11 20a21 21 0 0 0 42 0z" fill="#ef5350"/><g fill="#1c1f26"><ellipse cx="22" cy="28" rx="1.6" ry="2.6"/><ellipse cx="32" cy="33" rx="1.6" ry="2.6"/><ellipse cx="42" cy="28" rx="1.6" ry="2.6"/><ellipse cx="27" cy="38" rx="1.6" ry="2.6"/><ellipse cx="37" cy="38" rx="1.6" ry="2.6"/></g></g>`),
+    avocado: wrap(`<path d="M32 4c-8 0-12 10-14 18-4 8-6 12-6 20a20 20 0 0 0 40 0c0-8-2-12-6-20C44 14 40 4 32 4z" fill="#2e7d32"/><path d="M32 11c-6 0-9 8-11 15-3 7-5 10-5 16a16 16 0 0 0 32 0c0-6-2-9-5-16-2-7-5-15-11-15z" fill="#c5e1a5"/><circle cx="32" cy="42" r="9" fill="#6d4c41"/><circle cx="29" cy="39" r="2.5" fill="#fff" opacity=".3"/>`),
+    pineapple: wrap(`<clipPath id="c"><ellipse cx="32" cy="40" rx="16" ry="20"/></clipPath><path d="M32 22L22 4l6 10 4-12 4 12 6-10z" fill="#2e7d32"/><ellipse cx="32" cy="40" rx="16" ry="20" fill="#fbc02d"/><g clip-path="url(#c)" stroke="#f57f17" stroke-width="2"><path d="M14 28l36 36M14 40l24 24M24 22l28 28M50 28l-36 36M50 40l-24 24M40 22l-28 28"/></g>`),
+    back: wrap(`<rect x="2" y="2" width="60" height="60" rx="10" fill="#3a9d1f"/><circle cx="32" cy="32" r="16" fill="none" stroke="#7ed957" stroke-width="3"/><circle cx="32" cy="32" r="6" fill="#7ed957"/>`),
+    pad: wrap(`<rect x="4" y="16" width="56" height="32" rx="16" fill="#3a9d1f"/><path d="M18 26v12M12 32h12" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><circle cx="43" cy="29" r="3.2" fill="#fff"/><circle cx="50" cy="35" r="3.2" fill="#fff"/>`),
+    globe: wrap(`<circle cx="32" cy="32" r="26" fill="#1e88e5"/><g stroke="#fff" stroke-width="2.5" fill="none"><ellipse cx="32" cy="32" rx="26" ry="10"/><ellipse cx="32" cy="32" rx="11" ry="26"/><path d="M6 32h52"/></g>`)
+  };
+  const uri = (name) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgs[name]);
+  return {
+    names: ["kiwi", "apple", "grapes", "cherry", "lemon", "melon", "avocado", "pineapple"],
+    uri,
+    img: (name, cls) => `<img ${cls ? `class="${cls}" ` : ""}src="${uri(name)}" alt="" draggable="false">`
+  };
+})();
+document.querySelectorAll("[data-art]").forEach(el => { el.src = ART.uri(el.dataset.art); });
+
+/* ================= particles ================= */
+const Particles = (() => {
+  const cv = $("particles"), ctx = cv.getContext("2d");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W = 0, H = 0, ps = [], raf = null, color = "126,217,87";
+  const mouse = { x: -999, y: -999 };
+
+  function rgb(h) {
+    h = h.trim();
+    if (h[0] === "#") {
+      if (h.length === 4) h = "#" + [...h.slice(1)].map(c => c + c).join("");
+      const n = parseInt(h.slice(1), 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(",");
+    }
+    return "126,217,87";
+  }
+  const spawn = () => ({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .6, vy: (Math.random() - .5) * .6, r: Math.random() * 2 + 1 });
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.min(110, Math.floor(W * H / 14000));
+    while (ps.length < n) ps.push(spawn());
+    ps.length = n;
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of ps) {
+      const dx = p.x - mouse.x, dy = p.y - mouse.y, d = Math.hypot(dx, dy);
+      if (d < 120 && d > 0) { p.vx += dx / d * .06; p.vy += dy / d * .06; }
+      p.vx += (Math.random() - .5) * .02; p.vy += (Math.random() - .5) * .02;
+      const sp = Math.hypot(p.vx, p.vy);
+      if (sp > 1.2) { p.vx *= 1.2 / sp; p.vy *= 1.2 / sp; }
+      p.vx *= .995; p.vy *= .995;
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; else if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; else if (p.y > H) p.y = 0;
+    }
+    for (let i = 0; i < ps.length; i++) {
+      const a = ps[i];
+      ctx.fillStyle = `rgba(${color},.8)`;
+      ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2); ctx.fill();
+      for (let j = i + 1; j < ps.length; j++) {
+        const b = ps[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d < 110) {
+          ctx.strokeStyle = `rgba(${color},${(1 - d / 110) * .35})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+      }
+    }
+  }
+  function loop() { frame(); raf = requestAnimationFrame(loop); }
+
+  window.addEventListener("pointermove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener("pointerleave", () => { mouse.x = mouse.y = -999; });
+  window.addEventListener("resize", () => { if (raf || reduce) resize(); });
+
+  return {
+    start() {
+      color = rgb(getComputedStyle(document.documentElement).getPropertyValue("--accent"));
+      resize();
+      if (reduce) { frame(); return; }
+      if (!raf) raf = requestAnimationFrame(loop);
+    },
+    stop() { if (raf) cancelAnimationFrame(raf); raf = null; }
+  };
+})();
+
+/* ================= navigation ================= */
+let stopGame = null;
+const HASH = { home: "home", links: "math-work", games: "english-homework", study: "study", algebra: "algebra" };
+const PAGE_FROM_HASH = Object.fromEntries(Object.entries(HASH).map(([k, v]) => [v, k]));
+function showPage(name) {
+  if (!["home", "links", "games", "study", "algebra"].includes(name)) name = "home";
+  document.querySelectorAll(".page").forEach(p => p.classList.toggle("hidden", p.id !== "page-" + name));
+  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("active", b.dataset.page === name));
+  if (name === "home") Particles.start(); else Particles.stop();
+  if (name !== "games") closeGame();
+  if (name === "study") loadStudy(); else unloadStudy();
+  if (name === "algebra") algebraOpen(); else algebraLeave();
+  window.scrollTo(0, 0);
+  try { history.replaceState(null, "", "#" + HASH[name]); } catch (_) {}
+}
+document.querySelectorAll(".nav button").forEach(b => b.addEventListener("click", () => showPage(b.dataset.page)));
+document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => showPage(b.dataset.go)));
+
+/* ================= games ================= */
+function bestGet(k) { try { return Number(localStorage.getItem(k)) || 0; } catch (_) { return 0; } }
+function bestSet(k, v) { try { localStorage.setItem(k, String(v)); } catch (_) {} }
+
+function closeGame() {
+  if (stopGame) { stopGame(); stopGame = null; }
+  $("gameArea").classList.add("hidden");
+  $("gameHome").classList.remove("hidden");
+  $("gameBody").innerHTML = "";
+}
+function openGame(name) {
+  closeGame();
+  $("gameHome").classList.add("hidden");
+  $("gameArea").classList.remove("hidden");
+  if (name === "catch") startCatch($("gameBody")); else startMemory($("gameBody"));
+}
+document.querySelectorAll(".gamecard").forEach(c => c.addEventListener("click", () => openGame(c.dataset.game)));
+$("gameBack").addEventListener("click", closeGame);
+
+function startCatch(body) {
+  let score = 0, time = 20, mv = null, tick = null, k = null, best = bestGet("kiwiCatchBest");
+  body.innerHTML = `<h2>${ART.img("kiwi", "gimg")} Kiwi Catch</h2><div class="hint" id="cInfo"></div><div class="arena" id="arena"></div><button id="cStart">Start</button>`;
+  const info = $("cInfo"), arena = $("arena");
+  const upd = () => { info.textContent = `Score ${score} · Time ${time} · Best ${best}`; };
+  const place = () => {
+    const a = arena.getBoundingClientRect();
+    k.style.left = Math.random() * Math.max(10, a.width - 44) + "px";
+    k.style.top = Math.random() * Math.max(10, a.height - 44) + "px";
+  };
+  const stop = () => { clearInterval(mv); clearInterval(tick); };
+  const end = () => {
+    stop(); if (k) k.remove();
+    if (score > best) { best = score; bestSet("kiwiCatchBest", best); }
+    info.textContent = `Time's up! You caught ${score}. Best ${best}`;
+    $("cStart").disabled = false;
+  };
+  $("cStart").addEventListener("click", () => {
+    stop(); score = 0; time = 20; arena.innerHTML = ""; $("cStart").disabled = true;
+    k = document.createElement("button"); k.className = "kiwi"; k.innerHTML = ART.img("kiwi");
+    arena.appendChild(k); place(); upd();
+    k.addEventListener("click", () => { score++; place(); upd(); });
+    mv = setInterval(place, 900);
+    tick = setInterval(() => { time--; upd(); if (time <= 0) end(); }, 1000);
+  });
+  upd();
+  stopGame = stop;
+}
+
+function startMemory(body) {
+  const em = ART.names;
+  const deck = [...em, ...em];
+  for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  let first = null, lock = false, moves = 0, found = 0, timer = null;
+  const bestKey = "memoryBest";
+  body.innerHTML = `<h2>${ART.img("back", "gimg")} Memory Match</h2><div class="hint" id="mInfo"></div><div class="mem" id="mem"></div><button id="mAgain">New game</button>`;
+  const info = $("mInfo"), grid = $("mem");
+  const upd = () => { const b = bestGet(bestKey); info.textContent = `Moves ${moves}` + (b ? ` · Best ${b}` : ""); };
+  deck.forEach((emoji) => {
+    const c = document.createElement("button"); c.className = "mcard"; c.innerHTML = ART.img("back");
+    c.addEventListener("click", () => {
+      if (lock || c.classList.contains("up") || c.classList.contains("done")) return;
+      c.classList.add("up"); c.innerHTML = ART.img(emoji);
+      if (!first) { first = { c, emoji }; return; }
+      moves++;
+      if (first.emoji === emoji) {
+        first.c.classList.replace("up", "done"); c.classList.replace("up", "done");
+        first = null; found++;
+        if (found === em.length) {
+          const b = bestGet(bestKey);
+          if (!b || moves < b) bestSet(bestKey, moves);
+          info.textContent = `You won in ${moves} moves!`;
+          return;
+        }
+      } else {
+        lock = true; const a = first.c; first = null;
+        timer = setTimeout(() => { a.classList.remove("up"); a.innerHTML = ART.img("back"); c.classList.remove("up"); c.innerHTML = ART.img("back"); lock = false; }, 800);
+      }
+      upd();
+    });
+    grid.appendChild(c);
+  });
+  $("mAgain").addEventListener("click", () => startMemory(body));
+  upd();
+  stopGame = () => clearTimeout(timer);
+}
+
+/* ================= custom games ================= */
+const GameDB = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    if (!window.indexedDB) { rej(new Error("This browser can't save games.")); return; }
+    const r = indexedDB.open("ppkiwi-games", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("games", { keyPath: "id" });
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error || new Error("Storage unavailable"));
+  }));
+  const tx = async (mode, fn) => {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const t = db.transaction("games", mode);
+      const out = fn(t.objectStore("games"));
+      t.oncomplete = () => res(out && out.result);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error || new Error("Couldn't save (storage may be full)"));
+    });
+  };
+  return { all: () => tx("readonly", s => s.getAll()), put: (g) => tx("readwrite", s => s.put(g)), del: (id) => tx("readwrite", s => s.delete(id)) };
+})();
+
+let customGames = [];
+
+function buildGameDoc(files) {
+  const has = (re) => files.filter(f => re.test(f.name));
+  const htmls = has(/\.html?$/i), svgs = has(/\.svg$/i), jss = has(/\.js$/i), csss = has(/\.css$/i);
+  const esc = (t) => t.replace(/<\/(script|style)/gi, "<\\/$1");
+  const base = (u) => u.split(/[?#]/)[0].split("/").pop().toLowerCase();
+  const find = (list, u) => list.find(f => f.name.toLowerCase() === base(u));
+  const styleTag = (f) => "<style>" + esc(f.text) + "</style>";
+  const scriptTag = (f) => "<script>" + esc(f.text) + "<\/script>";
+  const used = new Set();
+
+  if (htmls.length) {
+    let html = htmls[0].text;
+    html = html.replace(/<script\b([^>]*?)\bsrc=["']([^"']+)["']([^>]*)>\s*<\/script>/gi, (m, a, src, b) => {
+      const f = find(jss, src); if (!f) return m; used.add(f);
+      return "<script" + a + b + ">" + esc(f.text) + "<\/script>";
+    });
+    html = html.replace(/<link\b[^>]*?href=["']([^"']+)["'][^>]*>/gi, (m, href) => {
+      if (!/stylesheet/i.test(m)) return m;
+      const f = find(csss, href); if (!f) return m; used.add(f);
+      return styleTag(f);
+    });
+    html = html.replace(/\b(src|href)=["']([^"']+\.svg)(?:[?#][^"']*)?["']/gi, (m, attr, u) => {
+      const f = find(svgs, u); if (!f) return m;
+      return attr + '="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(f.text) + '"';
+    });
+    const extraCss = csss.filter(f => !used.has(f)).map(styleTag).join("");
+    const extraJs = jss.filter(f => !used.has(f)).map(scriptTag).join("");
+    if (extraCss) html = /<\/head>/i.test(html) ? html.replace(/<\/head>/i, () => extraCss + "</head>") : extraCss + html;
+    if (extraJs) html = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, () => extraJs + "</body>") : html + extraJs;
+    return html;
+  }
+  if (svgs.length) {
+    const svg = svgs[0].text.replace(/<\?xml[\s\S]*?\?>/i, "").replace(/<!DOCTYPE[\s\S]*?>/i, "");
+    return '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:#fff}svg{display:block;width:100%;height:100%}</style>' +
+      csss.map(styleTag).join("") + "</head><body>" + svg + jss.map(scriptTag).join("") + "</body></html>";
+  }
+  if (jss.length) {
+    return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;height:100%}</style>' +
+      csss.map(styleTag).join("") + "</head><body>" + jss.map(scriptTag).join("") + "</body></html>";
+  }
+  throw new Error("Add an .html, .svg or .js file. A .css file can't run on its own.");
+}
+
+function drawCustomGames() {
+  const box = $("customGames");
+  box.innerHTML = "";
+  customGames.forEach((g) => {
+    const c = document.createElement("div");
+    c.className = "card gamecard custom";
+    c.innerHTML = `<h2>${ART.img(g.kind === "link" ? "globe" : "pad", "gimg")}<span class="gn"></span><span class="badge"></span></h2><div class="hint"></div><button class="ghost del">Delete</button>`;
+    c.querySelector(".gn").textContent = g.name;
+    c.querySelector(".badge").textContent = g.kind === "link" ? "link"
+      : [...new Set(g.files.map(f => f.name.split(".").pop().toLowerCase()))].join(" + ");
+    c.querySelector(".hint").textContent = g.kind === "link" ? g.url : g.files.map(f => f.name).join(", ");
+    c.addEventListener("click", () => openCustom(g));
+    c.querySelector(".del").addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (!confirm('Delete "' + g.name + '"?')) return;
+      try { await GameDB.del(g.id); } catch (_) {}
+      customGames = customGames.filter(x => x.id !== g.id);
+      drawCustomGames();
+    });
+    box.appendChild(c);
+  });
+}
+
+async function loadCustomGames() {
+  try { customGames = (await GameDB.all()).sort((a, b) => a.added - b.added); }
+  catch (e) { customGames = []; }
+  drawCustomGames();
+}
+
+function loadCustom(g) {
+  const f = $("pFrame");
+  if (!f) return;
+  if (g.kind === "link") {
+    f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-modals allow-downloads");
+    f.removeAttribute("srcdoc");
+    f.src = g.url;
+  } else {
+    // no allow-same-origin: added files run in an isolated frame and can't touch the rest of this page
+    f.setAttribute("sandbox", "allow-scripts allow-forms allow-popups allow-pointer-lock allow-modals");
+    try { f.srcdoc = buildGameDoc(g.files); }
+    catch (e) { f.srcdoc = "<body style='font-family:sans-serif;padding:20px'>" + String(e.message).replace(/</g, "&lt;") + "</body>"; }
+  }
+}
+
+function openCustom(g) {
+  closeGame();
+  $("gameHome").classList.add("hidden");
+  $("gameArea").classList.remove("hidden");
+  const body = $("gameBody");
+  body.innerHTML = `<h2>${ART.img(g.kind === "link" ? "globe" : "pad", "gimg")}<span id="pName"></span></h2>
+    <div class="toolbar" style="justify-content:flex-start;margin:0 0 4px">
+      <button class="ghost" id="pFull">Fullscreen</button>
+      <button class="ghost" id="pReload">Reload</button>
+      ${g.kind === "link" ? '<button class="ghost" id="pOpen">Open in new tab</button>' : ""}
+    </div>
+    <div class="player" id="player"><iframe id="pFrame" title="game" allow="fullscreen; gamepad; autoplay" allowfullscreen></iframe></div>`;
+  $("pName").textContent = g.name;
+  $("pFull").addEventListener("click", () => {
+    const el = $("player");
+    if (document.fullscreenElement) document.exitFullscreen();
+    else (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
+  });
+  $("pReload").addEventListener("click", () => {
+    const f = $("pFrame"); f.removeAttribute("srcdoc"); f.src = "about:blank";
+    setTimeout(() => loadCustom(g), 60);
+  });
+  if (g.kind === "link") $("pOpen").addEventListener("click", () => window.open(g.url, "_blank", "noopener"));
+  loadCustom(g);
+}
+
+function resetGameForm() {
+  $("gName").value = ""; $("gLink").value = ""; $("gFiles").value = ""; $("gFileList").textContent = "";
+  $("gLog").textContent = ""; $("gLog").classList.remove("err");
+}
+$("addGameBtn").addEventListener("click", () => $("gameForm").classList.toggle("hidden"));
+$("gCancel").addEventListener("click", () => { $("gameForm").classList.add("hidden"); resetGameForm(); });
+$("gMode").addEventListener("change", () => {
+  const link = $("gMode").value === "link";
+  $("gFilesBox").classList.toggle("hidden", link);
+  $("gLinkBox").classList.toggle("hidden", !link);
+});
+$("gFiles").addEventListener("change", () => {
+  $("gFileList").textContent = [...$("gFiles").files].map(f => f.name + " (" + (f.size / 1024).toFixed(1) + " KB)").join("\n");
+});
+$("gSave").addEventListener("click", async () => {
+  const log = $("gLog");
+  const say = (m, err) => { log.textContent = m; log.classList.toggle("err", !!err); };
+  $("gSave").disabled = true;
+  try {
+    let name = $("gName").value.trim();
+    const g = { id: "g" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), added: Date.now() };
+    if ($("gMode").value === "link") {
+      let u = $("gLink").value.trim();
+      if (!u) throw new Error("Paste a link first.");
+      if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+      let url; try { url = new URL(u); } catch (_) { throw new Error("That doesn't look like a valid link."); }
+      g.kind = "link"; g.url = url.href; name = name || url.hostname;
+    } else {
+      const list = [...$("gFiles").files];
+      if (!list.length) throw new Error("Pick at least one file.");
+      if (list.some(f => !/\.(html?|svg|js|css)$/i.test(f.name))) throw new Error("Only .html, .svg, .js and .css files are supported.");
+      if (list.reduce((n, f) => n + f.size, 0) > 30 * 1024 * 1024) throw new Error("Those files are too big (30 MB max).");
+      const files = [];
+      for (const f of list) files.push({ name: f.name, text: await f.text() });
+      buildGameDoc(files); // throws if the files can't make a game
+      g.kind = "files"; g.files = files; name = name || list[0].name.replace(/\.[^.]+$/, "");
+    }
+    g.name = name;
+    say("Saving...");
+    await GameDB.put(g);
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (_) {}
+    customGames.push(g);
+    drawCustomGames();
+    resetGameForm();
+    $("gameForm").classList.add("hidden");
+  } catch (e) {
+    say(e.message || String(e), true);
+  } finally {
+    $("gSave").disabled = false;
+  }
+});
+
+/* ================= algebra (shared files) ================= */
+/* Files are stored in one PUBLIC GitHub repo, so everyone who opens ppkiwi sdk sees the same list.
+   Fill these in (see the setup card on the Algebra page). */
+const ALGEBRA = {
+  owner: "",               // GitHub username that owns the shared repo
+  repo: "ppkiwi-algebra",  // the public repo (create it in Math Work, with a README)
+  branch: "main",
+  folder: "algebra",
+  token: ""                // fine-grained token: ONLY this repo, Contents = Read and write. Anyone who opens this file can read it!
+};
+const ALG_MAX = 25 * 1024 * 1024;
+const ALG_RISKY = /\.(exe|msi|bat|cmd|com|scr|ps1|vbs|vbe|jar|apk|dmg|pkg|sh|js|jse|wsf|hta|lnk|reg|dll)$/i;
+const ALG_MIME = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", bmp: "image/bmp", svg: "image/svg+xml", ico: "image/x-icon", avif: "image/avif",
+  mp4: "video/mp4", m4v: "video/mp4", webm: "video/webm", ogv: "video/ogg", mov: "video/quicktime",
+  mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg", m4a: "audio/mp4", flac: "audio/flac", aac: "audio/aac", pdf: "application/pdf" };
+const ALG_TEXT = new Set(["txt", "md", "json", "csv", "tsv", "xml", "yaml", "yml", "log", "js", "mjs", "ts", "css", "py", "java", "c", "cpp", "h", "cs", "rb", "go", "rs", "php", "sh", "bat", "ini", "toml", "sql", "lua", "html", "htm"]);
+
+let algFiles = [], algUrls = [], algLast = null, algViewTok = 0, algPicked = [];
+
+const algConfigured = () => !!(ALGEBRA.owner && ALGEBRA.repo);
+const algExt = (n) => (n.includes(".") ? n.split(".").pop() : "").toLowerCase();
+const algSize = (b) => b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(1) + " KB" : (b / 1048576).toFixed(1) + " MB";
+const algEnc = (p) => p.split("/").map(encodeURIComponent).join("/");
+const algRaw = (f) => `https://raw.githubusercontent.com/${ALGEBRA.owner}/${ALGEBRA.repo}/${ALGEBRA.branch}/${algEnc(f.path)}`;
+const algText = (buf) => new TextDecoder("utf-8").decode(buf);
+
+function algIcon(ext) {
+  const e = ext.replace(/[^a-z0-9]/g, "").slice(0, 4).toUpperCase() || "FILE";
+  const m = ALG_MIME[ext] || "";
+  const col = m.startsWith("image/") ? "#8e24aa" : m.startsWith("video/") ? "#e53935" : m.startsWith("audio/") ? "#1e88e5" : ext === "pdf" ? "#d32f2f" : ALG_TEXT.has(ext) ? "#3a9d1f" : "#607d8b";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M12 4h28l14 14v42H12z" fill="${col}"/><path d="M40 4v14h14z" fill="#fff" opacity=".35"/><text x="33" y="46" font-family="Arial,sans-serif" font-size="${e.length > 3 ? 12 : 14}" font-weight="700" fill="#fff" text-anchor="middle">${e}</text></svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+async function algList() {
+  const { owner, repo, branch, folder } = ALGEBRA;
+  let entries = null, firstErr = null;
+  try {
+    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent(branch)}?recursive=1`, { headers: { "Accept": "application/vnd.github+json" } });
+    if (r.status === 409) entries = [];
+    else if (r.status === 404) throw new Error("Shared repo not found. Make sure it is public and the ALGEBRA settings are right.");
+    else if (!r.ok) throw new Error("GitHub said " + r.status + (r.status === 403 ? " (too many requests, try again in a bit)" : ""));
+    else { const j = await r.json(); entries = (j.tree || []).filter(t => t.type === "blob").map(t => ({ path: t.path, size: t.size || 0 })); }
+  } catch (e) {
+    firstErr = e;
+    try {
+      const r2 = await fetch(`https://data.jsdelivr.com/v1/packages/gh/${owner}/${repo}@${branch}?structure=flat`);
+      if (!r2.ok) throw 0;
+      const j2 = await r2.json();
+      entries = (j2.files || []).map(f => ({ path: String(f.name).replace(/^\//, ""), size: f.size || 0 }));
+    } catch (_) { throw firstErr; }
+  }
+  const prefix = folder + "/";
+  return entries.filter(e => e.path.startsWith(prefix)).map(e => {
+    const rest = e.path.slice(prefix.length).split("/");
+    const id = rest.shift(), name = rest.join("/");
+    const ts = parseInt(id.slice(0, 8), 36);
+    return { path: e.path, id, name, size: e.size, time: Number.isFinite(ts) ? ts : 0 };
+  }).filter(f => f.name).sort((a, b) => b.time - a.time);
+}
+
+async function algLoad() {
+  const st = $("algStatus");
+  st.textContent = "Loading files..."; st.classList.remove("err");
+  try {
+    algFiles = await algList();
+    st.textContent = algFiles.length ? "" : "No files yet. Be the first to upload one!";
+    algDraw();
+  } catch (e) {
+    st.textContent = "Couldn't load files: " + (e.message || e); st.classList.add("err");
+  }
+}
+
+function algDraw() {
+  const q = $("algFilter").value.trim().toLowerCase();
+  const box = $("algList");
+  box.innerHTML = "";
+  algFiles.filter(f => !q || f.name.toLowerCase().includes(q)).forEach((f) => {
+    const c = document.createElement("div");
+    c.className = "card filecard";
+    c.innerHTML = '<h2><img class="gimg" alt="" draggable="false"><span class="fn"></span></h2><div class="hint meta"></div><div class="toolbar" style="justify-content:flex-start;margin-top:10px"><button class="ghost v">View</button><button class="ghost d">Download</button></div>';
+    c.querySelector("img").src = algIcon(algExt(f.name));
+    c.querySelector(".fn").textContent = f.name;
+    c.querySelector(".meta").textContent = algSize(f.size) + (f.time ? " \u00b7 " + new Date(f.time).toLocaleString() : "");
+    c.addEventListener("click", () => algOpenView(f));
+    c.querySelector(".v").addEventListener("click", (e) => { e.stopPropagation(); algOpenView(f); });
+    c.querySelector(".d").addEventListener("click", (e) => { e.stopPropagation(); algDownload(f); });
+    box.appendChild(c);
+  });
+}
+
+async function algData(f) {
+  if (algLast && algLast.path === f.path) return algLast.buf;
+  const r = await fetch(algRaw(f));
+  if (!r.ok) throw new Error("Couldn't load the file (" + r.status + ")");
+  const buf = await r.arrayBuffer();
+  algLast = { path: f.path, buf };
+  return buf;
+}
+
+async function algDownload(f) {
+  if (ALG_RISKY.test(f.name) && !confirm('"' + f.name + '" is a type of file that can run programs. Only download it if you trust it. Download anyway?')) return;
+  try {
+    const buf = await algData(f);
+    const u = URL.createObjectURL(new Blob([buf]));
+    const a = document.createElement("a");
+    a.href = u; a.download = f.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 10000);
+  } catch (e) { alert("Download failed: " + (e.message || e)); }
+}
+
+function algBlob(buf, type) {
+  const u = URL.createObjectURL(new Blob([buf], { type }));
+  algUrls.push(u);
+  return u;
+}
+
+function algCloseView() {
+  algViewTok++;
+  algUrls.forEach(u => URL.revokeObjectURL(u));
+  algUrls = []; algLast = null;
+  $("algView").classList.add("hidden");
+  $("algViewBody").innerHTML = "";
+  if (algConfigured()) $("algHome").classList.remove("hidden");
+}
+
+function algPre(text) {
+  const pre = document.createElement("pre");
+  pre.className = "code";
+  pre.textContent = text.length > 300000 ? text.slice(0, 300000) + "\n\n... (the file continues, download it to see everything)" : text;
+  return pre;
+}
+
+async function algOpenView(f) {
+  const tok = ++algViewTok;
+  $("algHome").classList.add("hidden");
+  $("algView").classList.remove("hidden");
+  const ext = algExt(f.name), mime = ALG_MIME[ext];
+  const body = $("algViewBody");
+  body.innerHTML = '<h2><img class="gimg" alt="" draggable="false"><span id="avName"></span></h2><div class="hint" id="avMeta"></div><div class="toolbar" id="avBar" style="justify-content:flex-start;margin:0 0 8px"><button id="avDl" style="margin:0">Download</button></div><div id="avBox" class="hint">Loading...</div>';
+  body.querySelector("img").src = algIcon(ext);
+  $("avName").textContent = f.name;
+  $("avMeta").textContent = algSize(f.size) + (f.time ? " \u00b7 " + new Date(f.time).toLocaleString() : "");
+  $("avDl").addEventListener("click", () => algDownload(f));
+  window.scrollTo(0, 0);
+  const box = $("avBox");
+  if (!mime && !ALG_TEXT.has(ext)) { box.textContent = "There's no preview for this kind of file, but you can download it."; return; }
+  try {
+    const buf = await algData(f);
+    if (tok !== algViewTok) return;
+    box.className = ""; box.innerHTML = "";
+    const bar = $("avBar");
+    const openTab = (u) => { const b = document.createElement("button"); b.className = "ghost"; b.textContent = "Open in new tab"; b.addEventListener("click", () => window.open(u, "_blank", "noopener")); bar.appendChild(b); };
+    if (mime && mime.startsWith("image/")) {
+      const u = algBlob(buf, mime), img = new Image();
+      img.src = u; img.alt = f.name; img.style.maxWidth = "100%"; img.style.borderRadius = "8px";
+      box.appendChild(img); openTab(u);
+    } else if (mime && mime.startsWith("video/")) {
+      const u = algBlob(buf, mime), v = document.createElement("video");
+      v.src = u; v.controls = true; v.style.maxWidth = "100%"; box.appendChild(v); openTab(u);
+    } else if (mime && mime.startsWith("audio/")) {
+      const u = algBlob(buf, mime), a = document.createElement("audio");
+      a.src = u; a.controls = true; a.style.width = "100%"; box.appendChild(a);
+    } else if (ext === "pdf") {
+      const u = algBlob(buf, mime), fr = document.createElement("iframe");
+      fr.src = u; fr.style.cssText = "width:100%;height:70vh;border:1px solid var(--border);border-radius:8px;background:#fff";
+      box.appendChild(fr); openTab(u);
+    } else if (ext === "html" || ext === "htm") {
+      const text = algText(buf);
+      const fr = document.createElement("iframe");
+      fr.setAttribute("sandbox", ""); // scripts off, fully isolated
+      fr.srcdoc = text;
+      fr.style.cssText = "width:100%;height:60vh;border:1px solid var(--border);border-radius:8px;background:#fff";
+      const pre = algPre(text); pre.classList.add("hidden");
+      const note = document.createElement("div"); note.className = "hint"; note.textContent = "Preview runs with scripts turned off.";
+      const tg = document.createElement("button"); tg.className = "ghost"; tg.textContent = "View source";
+      tg.addEventListener("click", () => {
+        const showSrc = pre.classList.contains("hidden");
+        pre.classList.toggle("hidden", !showSrc); fr.classList.toggle("hidden", showSrc);
+        tg.textContent = showSrc ? "View preview" : "View source";
+      });
+      bar.appendChild(tg);
+      box.append(fr, pre, note);
+    } else {
+      box.appendChild(algPre(algText(buf)));
+    }
+  } catch (e) {
+    if (tok !== algViewTok) return;
+    box.className = "hint err"; box.textContent = e.message || String(e);
+  }
+}
+
+function algB64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(",")[1]);
+    r.onerror = () => reject(new Error("Couldn't read " + file.name));
+    r.readAsDataURL(file);
+  });
+}
+
+async function algUpload(file) {
+  const { owner, repo, branch, folder, token } = ALGEBRA;
+  if (!token) throw new Error("Uploads aren't turned on for this copy of ppkiwi sdk.");
+  if (file.size > ALG_MAX) throw new Error('"' + file.name + '" is too big (25 MB max).');
+  let safe = file.name.replace(/[\\\/:*?"<>|#%\x00-\x1f]+/g, "_").replace(/^[.\s]+/, "").trim().slice(-120);
+  if (!safe) safe = "file";
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const path = folder + "/" + id + "/" + safe;
+  const content = await algB64(file);
+  const who = { name: "Anonymous", email: "anonymous@users.noreply.github.com" };
+  let res;
+  for (let i = 0; i < 3; i++) {
+    res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${algEnc(path)}`, {
+      method: "PUT",
+      headers: { "Authorization": "Bearer " + token, "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "Add file", content, branch, author: who, committer: who })
+    });
+    if (res.status !== 409) break;
+    await new Promise(r => setTimeout(r, 1200));
+  }
+  if (!res.ok) {
+    let msg = ""; try { msg = (await res.json()).message || ""; } catch (_) {}
+    if (res.status === 401) throw new Error("The upload token was rejected. It may have expired.");
+    if (res.status === 403) throw new Error("Upload not allowed right now (token permissions or rate limit). " + msg);
+    if (res.status === 404) throw new Error("The shared repo or branch wasn't found. Check the ALGEBRA settings.");
+    throw new Error("Upload failed (" + res.status + "): " + msg);
+  }
+  return { path, id, name: safe, size: file.size, time: Date.now() };
+}
+
+function algRenderPicked() {
+  $("algPicked").textContent = algPicked.map(f => f.name + " (" + algSize(f.size) + ")").join("\n");
+}
+
+function algebraOpen() {
+  algCloseView();
+  const ok = algConfigured();
+  $("algSetup").classList.toggle("hidden", ok);
+  $("algHome").classList.toggle("hidden", !ok);
+  $("algUploadBtn").disabled = !ALGEBRA.token;
+  if (ok && !ALGEBRA.token) { $("algLog").textContent = "Uploading isn't turned on in this copy, but you can still view and download files."; }
+  if (ok) algLoad();
+}
+function algebraLeave() { algCloseView(); }
+
+$("algDrop").addEventListener("click", () => $("algFiles").click());
+$("algFiles").addEventListener("change", (e) => { algPicked = [...e.target.files]; algRenderPicked(); });
+["dragover", "dragenter"].forEach(ev => $("algDrop").addEventListener(ev, (e) => { e.preventDefault(); $("algDrop").classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => $("algDrop").addEventListener(ev, (e) => { e.preventDefault(); $("algDrop").classList.remove("over"); }));
+$("algDrop").addEventListener("drop", (e) => { if (e.dataTransfer.files.length) { algPicked = [...e.dataTransfer.files]; algRenderPicked(); } });
+$("algAddBtn").addEventListener("click", () => $("algForm").classList.toggle("hidden"));
+$("algRefresh").addEventListener("click", algLoad);
+$("algFilter").addEventListener("input", algDraw);
+$("algBack").addEventListener("click", algCloseView);
+$("algUploadBtn").addEventListener("click", async () => {
+  const log = $("algLog");
+  const say = (m, err) => { log.textContent = m; log.classList.toggle("err", !!err); };
+  if (!algPicked.length) { say("Pick at least one file.", true); return; }
+  $("algUploadBtn").disabled = true;
+  try {
+    let done = 0;
+    const total = algPicked.length;
+    while (algPicked.length) {
+      const file = algPicked[0];
+      say("Uploading " + (done + 1) + " of " + total + ": " + file.name + "...");
+      algFiles.unshift(await algUpload(file));
+      algPicked.shift(); done++; algRenderPicked();
+    }
+    $("algFiles").value = "";
+    $("algStatus").textContent = "";
+    algDraw();
+    say("Uploaded " + done + " file" + (done === 1 ? "" : "s") + ".");
+    setTimeout(() => $("algForm").classList.add("hidden"), 1200);
+  } catch (e) {
+    algDraw();
+    say(e.message || String(e), true);
+  } finally {
+    $("algUploadBtn").disabled = !ALGEBRA.token;
+  }
+});
+
+/* ================= study ================= */
+const STUDY_URL = "https://cdn.jsdelivr.net/gh/achroma-ubg/svg@latest/index.svg";
+const studyFrame = $("studyFrame");
+function loadStudy() {
+  if (studyFrame.getAttribute("src") !== STUDY_URL) studyFrame.src = STUDY_URL;
+}
+function unloadStudy() {
+  const s = studyFrame.getAttribute("src");
+  if (s && s !== "about:blank") studyFrame.src = "about:blank";
+}
+$("studyReload").addEventListener("click", () => { studyFrame.src = "about:blank"; setTimeout(() => { studyFrame.src = STUDY_URL; }, 60); });
+$("studyOpen").addEventListener("click", () => window.open(STUDY_URL, "_blank", "noopener"));
+$("studyFull").addEventListener("click", () => {
+  const el = $("studyScreen");
+  if (document.fullscreenElement) document.exitFullscreen();
+  else (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
+});
+
+/* ================= start ================= */
+loadCustomGames();
+showPage(PAGE_FROM_HASH[location.hash.slice(1)] || "home");
+</script>
+</body>
+</html>
